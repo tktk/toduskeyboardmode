@@ -179,21 +179,27 @@ uinput = UInput(
 )
 
 while True:
-    readableDevices, _, _ = select(
-        devices[:],
-        [],
-        [],
-    )
+    try:
+        readableDevices, _, _ = select(
+            devices[:],
+            [],
+            [],
+        )
 
-    for readableDevice in readableDevices:
-        for event in readableDevice.read():
-            if onEvent(
-                uinput,
-                event,
-            ) == False:
-                sendEvent(
+        for readableDevice in readableDevices:
+            for event in readableDevice.read():
+                if onEvent(
                     uinput,
                     event,
-                )
+                ) == False:
+                    sendEvent(
+                        uinput,
+                        event,
+                    )
 
-                sendSync( uinput )
+                    sendSync( uinput )
+    except KeyboardInterrupt:
+        break
+
+for device in devices:
+    device.ungrab()
