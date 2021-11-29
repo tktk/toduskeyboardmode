@@ -1,25 +1,10 @@
 #!/usr/bin/python
 
+from practicemode import keymap, keyboards, key
 from evdev import ecodes
 from evdev.uinput import UInput
 from select import select
-from practicemode import keyboards, key
 import sys
-
-def evalFile(
-    _PATH,
-):
-    with open(
-        _PATH,
-        'rb',
-    ) as f:
-        return eval(
-            compile(
-                f.read(),
-                _PATH,
-                'eval',
-            ),
-        )
 
 def sendSync(
     _uinput,
@@ -114,9 +99,9 @@ def onEvent(
 
     return True
 
-CONFIG_FILE = sys.argv[ 1 ] if len( sys.argv ) >= 2 else 'config.py'
+KEYMAP_PATH = sys.argv[ 1 ] if len( sys.argv ) >= 2 else 'keymap.py'
 
-KEYMAP = evalFile( CONFIG_FILE )
+KEYMAP = keymap.read( KEYMAP_PATH )
 
 KEYBOARD_CODES = ecodes.keys.keys() - ecodes.BTN
 
