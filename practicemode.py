@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-from evdev import InputDevice, list_devices, ecodes
+from evdev import ecodes
 from evdev.uinput import UInput
 from select import select
-from practicemode import key
+from practicemode import keyboards, key
 import sys
 
 def evalFile(
@@ -20,50 +20,6 @@ def evalFile(
                 'eval',
             ),
         )
-
-def getDevicesFromPaths(
-    _DEVICE_PATHS,
-):
-    return [ InputDevice( DEVICE_PATH ) for DEVICE_PATH in _DEVICE_PATHS ]
-
-def isKeyboard(
-    _device,
-):
-    if _device.name == 'py-evdev-uinput':
-        return False
-
-    CAPABILITIES = _device.capabilities( verbose = False )
-
-    if 1 not in CAPABILITIES:
-        return False
-
-    SUPPORTED_KEYS = CAPABILITIES[ 1 ]
-    if ecodes.KEY_SPACE not in SUPPORTED_KEYS:
-        return False
-    elif ecodes.KEY_A not in SUPPORTED_KEYS:
-        return False
-    elif ecodes.KEY_Z not in SUPPORTED_KEYS:
-        return False
-    elif ecodes.BTN_MOUSE in SUPPORTED_KEYS:
-        return False
-
-    return True
-
-def selectDevices(
-):
-    allDevices = getDevicesFromPaths( list_devices() )
-
-    filteredDevices = list(
-        filter(
-            isKeyboard,
-            allDevices,
-        )
-    )
-
-    if not filteredDevices:
-        raise RuntimeError( 'input device not found' )
-
-    return filteredDevices
 
 def sendSync(
     _uinput,
@@ -164,26 +120,27 @@ KEYMAP = evalFile( CONFIG_FILE )
 
 KEYBOARD_CODES = ecodes.keys.keys() - ecodes.BTN
 
+keyboards = keyboards.enum()
+
 uinput = UInput(
     events = {
         ecodes.EV_KEY: KEYBOARD_CODES,
     }
 )
 
-devices = selectDevices()
-for device in devices:
-    device.grab()
+for keyboard in keyboards:
+    keyboard.grab()
 
 while True:
     try:
-        readableDevices, _, _ = select(
-            devices[:],
+        readableKeyboards, _, _ = select(
+            keyboards[:],
             [],
             [],
         )
 
-        for readableDevice in readableDevices:
-            for event in readableDevice.read():
+        for readableKeyboard in readableKeyboards:
+            for event in readableKeyboard.read():
                 if onEvent(
                     uinput,
                     event,
@@ -195,7 +152,7 @@ while True:
 
                     sendSync( uinput )
     except KeyboardInterrupt:
-        for device in devices:
-            device.ungrab()
+        for keyboard in keyboards:
+            keyboard.ungrab()
 
         raise
