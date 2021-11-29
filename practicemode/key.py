@@ -1,4 +1,20 @@
-class Key( object ):
+def Unshifted(
+    _CODE,
+):
+    return _Key(
+        _CODE,
+        False,
+    )
+
+def Shifted(
+    _CODE,
+):
+    return _Key(
+        _CODE,
+        True,
+    )
+
+class _Key:
     def __init__(
         _self,
         _CODE,
@@ -13,7 +29,7 @@ class Key( object ):
     ):
         if not isinstance(
             _OTHER,
-            Key,
+            _Key,
         ):
             return False
 
@@ -34,19 +50,3 @@ class Key( object ):
                 _SELF.SHIFTED,
             )
         )
-
-def Unshifted(
-    _CODE,
-):
-    return Key(
-        _CODE,
-        False,
-    )
-
-def Shifted(
-    _CODE,
-):
-    return Key(
-        _CODE,
-        True,
-    )

@@ -1,33 +1,9 @@
 #!/usr/bin/python
 
-from practicemode import keymap, keyboards, key
+from practicemode import keymap, keyboards, key, uinput
 from evdev import ecodes
-from evdev.uinput import UInput
 from select import select
 import sys
-
-def sendSync(
-    _uinput,
-):
-    _uinput.syn()
-
-def sendEvent(
-    _uinput,
-    _EVENT,
-):
-    _uinput.write_event( _EVENT )
-    sendSync( _uinput )
-
-def sendKeyEvent(
-    _uinput,
-    _CODE,
-    _VALUE,
-):
-    _uinput.write(
-        ecodes.EV_KEY,
-        _CODE,
-        _VALUE,
-    )
 
 leftShift = False
 rightShift = False
@@ -77,25 +53,25 @@ def onEvent(
 
     SHIFT_ACTION = ACTION_PRESS if TO_KEY.SHIFTED == True else ACTION_RELEASE
 
-    sendKeyEvent(
+    uinput.sendKeyEvent(
         _uinput,
         ecodes.KEY_RIGHTSHIFT,
         SHIFT_ACTION,
     )
 
-    sendKeyEvent(
+    uinput.sendKeyEvent(
         _uinput,
         TO_KEY.CODE,
         ACTION_PRESS,
     )
 
-    sendKeyEvent(
+    uinput.sendKeyEvent(
         _uinput,
         TO_KEY.CODE,
         ACTION_RELEASE,
     )
 
-    sendSync( uinput )
+    uinput.sendSync( _uinput )
 
     return True
 
@@ -103,15 +79,9 @@ KEYMAP_PATH = sys.argv[ 1 ] if len( sys.argv ) >= 2 else 'keymap.py'
 
 KEYMAP = keymap.read( KEYMAP_PATH )
 
-KEYBOARD_CODES = ecodes.keys.keys() - ecodes.BTN
-
 keyboards = keyboards.enum()
 
-uinput = UInput(
-    events = {
-        ecodes.EV_KEY: KEYBOARD_CODES,
-    }
-)
+uinput_ = uinput.uinput()
 
 for keyboard in keyboards:
     keyboard.grab()
@@ -127,15 +97,15 @@ while True:
         for readableKeyboard in readableKeyboards:
             for event in readableKeyboard.read():
                 if onEvent(
-                    uinput,
+                    uinput_,
                     event,
                 ) == False:
-                    sendEvent(
-                        uinput,
+                    uinput.sendEvent(
+                        uinput_,
                         event,
                     )
 
-                    sendSync( uinput )
+                    uinput.sendSync( uinput_ )
     except KeyboardInterrupt:
         for keyboard in keyboards:
             keyboard.ungrab()
