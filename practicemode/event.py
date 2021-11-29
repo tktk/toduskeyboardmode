@@ -3,6 +3,7 @@ from evdev import ecodes
 from select import select
 
 def loop(
+    _VERBOSE,
     _KEYMAP,
     _keyboards,
     _uinput,
@@ -18,15 +19,15 @@ def loop(
             for EVENT in readableKeyboard.read():
                 if _onEvent(
                     EVENT,
+                    _VERBOSE,
                     _KEYMAP,
                     _uinput,
                 ) == False:
-                    uinput.sendEvent(
-                        _uinput,
+                    _redirect(
                         EVENT,
+                        _VERBOSE,
+                        _uinput,
                     )
-
-                    uinput.sendSync( _uinput )
 
 _leftShift = False
 _rightShift = False
@@ -40,6 +41,7 @@ _ACTION_PRESS = 1
 
 def _onEvent(
     _EVENT,
+    _VERBOSE,
     _KEYMAP,
     _uinput,
 ):
@@ -77,6 +79,14 @@ def _onEvent(
 
     SHIFT_ACTION = _ACTION_PRESS if TO_KEY.SHIFTED == True else _ACTION_RELEASE
 
+    if _VERBOSE == True:
+        print(
+            '{0} -> {1}'.format(
+                FROM_KEY,
+                TO_KEY,
+            )
+        )
+
     uinput.sendKeyEvent(
         _uinput,
         ecodes.KEY_RIGHTSHIFT,
@@ -98,3 +108,19 @@ def _onEvent(
     uinput.sendSync( _uinput )
 
     return True
+
+def _redirect(
+    _EVENT,
+    _VERBOSE,
+    _uinput,
+):
+    if _VERBOSE == True:
+        if _EVENT.type == ecodes.EV_KEY and _EVENT.value == _ACTION_PRESS:
+            print( key.Unshifted( _EVENT.code ) )
+
+    uinput.sendEvent(
+        _uinput,
+        _EVENT,
+    )
+
+    uinput.sendSync( _uinput )

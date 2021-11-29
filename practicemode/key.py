@@ -1,3 +1,5 @@
+from evdev import ecodes
+
 def Unshifted(
     _CODE,
 ):
@@ -22,6 +24,14 @@ class _Key:
     ):
         _self.CODE = _CODE
         _self.SHIFTED = _SHIFTED
+
+    def __str__(
+        _SELF,
+    ):
+        return '{0}{1}'.format(
+            'S-' if _SELF.SHIFTED == True else '',
+            ecodes.KEY[ _SELF.CODE ],
+        )
 
     def __eq__(
         _SELF,
