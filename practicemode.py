@@ -3,23 +3,22 @@
 from evdev import InputDevice, list_devices, ecodes
 from evdev.uinput import UInput
 from select import select
-from practicemode import key, keymap
+from practicemode import key
 import sys
 
-def execFile(
+def evalFile(
     _PATH,
 ):
     with open(
         _PATH,
         'rb',
     ) as f:
-        return exec(
+        return eval(
             compile(
                 f.read(),
                 _PATH,
-                'exec',
+                'eval',
             ),
-            globals(),
         )
 
 def getDevicesFromPaths(
@@ -161,22 +160,19 @@ def onEvent(
 
 CONFIG_FILE = sys.argv[ 1 ] if len( sys.argv ) >= 2 else 'config.py'
 
-execFile( CONFIG_FILE )
+KEYMAP = evalFile( CONFIG_FILE )
 
-KEYMAP = keymap.get()
+KEYBOARD_CODES = ecodes.keys.keys() - ecodes.BTN
+
+uinput = UInput(
+    events = {
+        ecodes.EV_KEY: KEYBOARD_CODES,
+    }
+)
 
 devices = selectDevices()
 for device in devices:
     device.grab()
-
-keyboardCodes = ecodes.keys.keys() - ecodes.BTN
-
-uinput = UInput(
-    events = {
-        ecodes.EV_KEY: keyboardCodes,
-        ecodes.EV_REL: set( [ 0, 1, 6, 8, 9 ] ),
-    }
-)
 
 while True:
     try:
@@ -199,7 +195,7 @@ while True:
 
                     sendSync( uinput )
     except KeyboardInterrupt:
-        break
+        for device in devices:
+            device.ungrab()
 
-for device in devices:
-    device.ungrab()
+        raise
