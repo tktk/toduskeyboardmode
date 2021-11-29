@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from practicemode import keymap, keyboards, uinput, event
+from toduskeyboardmode import keymap, keyboards, uinput, event
 import argparse
 
 argumentParser = argparse.ArgumentParser()
