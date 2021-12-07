@@ -1,6 +1,9 @@
 from . import key, uinput
 from evdev import ecodes
 from select import select
+import asyncio
+
+_RELEASE_DELAY = 0.01
 
 def loop(
     _VERBOSE,
@@ -77,6 +80,8 @@ def _onEvent(
 
     TO_KEY = _KEYMAP[ FROM_KEY ]
 
+    TO_KEY_CODE = TO_KEY.CODE
+
     SHIFT_ACTION = _ACTION_PRESS if TO_KEY.SHIFTED == True else _ACTION_RELEASE
 
     if _VERBOSE == True:
@@ -95,19 +100,34 @@ def _onEvent(
 
     uinput.sendKeyEvent(
         _uinput,
-        TO_KEY.CODE,
+        TO_KEY_CODE,
         _ACTION_PRESS,
-    )
-
-    uinput.sendKeyEvent(
-        _uinput,
-        TO_KEY.CODE,
-        _ACTION_RELEASE,
     )
 
     uinput.sendSync( _uinput )
 
+    asyncio.get_event_loop().run_until_complete(
+        _asyncRelease(
+            _uinput,
+            TO_KEY_CODE,
+        )
+    )
+
     return True
+
+async def _asyncRelease(
+    _uinput,
+    _CODE,
+):
+    await asyncio.sleep( _RELEASE_DELAY )
+
+    uinput.sendKeyEvent(
+        _uinput,
+        _CODE,
+        _ACTION_RELEASE,
+    )
+
+    uinput.sendSync( _uinput )
 
 def _redirect(
     _EVENT,
