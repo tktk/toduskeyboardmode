@@ -11,6 +11,13 @@ argumentParser.add_argument(
     action = 'store_true',
 )
 argumentParser.add_argument(
+    '--press-duration',
+    dest = 'pressDuration',
+    nargs = '?',
+    type = float,
+    default = 0,
+)
+argumentParser.add_argument(
     'keymap',
     nargs = '?',
     metavar = 'keymap.py',
@@ -19,6 +26,7 @@ argumentParser.add_argument(
 ARGS = argumentParser.parse_args()
 
 KEYMAP_PATH = ARGS.keymap
+PRESS_DURATION = ARGS.pressDuration
 VERBOSE = ARGS.verbose
 
 KEYMAP = keymap.read( KEYMAP_PATH ) if KEYMAP_PATH is not None else {}
@@ -32,6 +40,7 @@ for keyboard in keyboards:
 
 try:
     event.loop(
+        PRESS_DURATION,
         VERBOSE,
         KEYMAP,
         keyboards,

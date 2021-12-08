@@ -3,9 +3,8 @@ from evdev import ecodes
 from select import select
 import asyncio
 
-_RELEASE_DELAY = 0.01
-
 def loop(
+    _PRESS_DURATION,
     _VERBOSE,
     _KEYMAP,
     _keyboards,
@@ -22,6 +21,7 @@ def loop(
             for EVENT in readableKeyboard.read():
                 if _onEvent(
                     EVENT,
+                    _PRESS_DURATION,
                     _VERBOSE,
                     _KEYMAP,
                     _uinput,
@@ -44,6 +44,7 @@ _ACTION_PRESS = 1
 
 def _onEvent(
     _EVENT,
+    _PRESS_DURATION,
     _VERBOSE,
     _KEYMAP,
     _uinput,
@@ -108,6 +109,7 @@ def _onEvent(
 
     asyncio.get_event_loop().run_until_complete(
         _asyncRelease(
+            _PRESS_DURATION,
             _uinput,
             TO_KEY_CODE,
         )
@@ -116,10 +118,11 @@ def _onEvent(
     return True
 
 async def _asyncRelease(
+    _PRESS_DURATION,
     _uinput,
     _CODE,
 ):
-    await asyncio.sleep( _RELEASE_DELAY )
+    await asyncio.sleep( _PRESS_DURATION )
 
     uinput.sendKeyEvent(
         _uinput,
